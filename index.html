@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>CRM Asopiel</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Inter:wght@300;400;500;600&display=swap">
+<style>
+  /* ── TOKENS ── */
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --border: #E4E1D8;
+    --fg: #1A1916;
+    --fg-muted: #6B6760;
+    --fg-subtle: #A09D98;
+    --accent: #8B5E3C;
+    --accent-light: #F0E8DF;
+    --green: #3A7D5B;
+    --green-light: #E4F2EB;
+    --yellow: #A07A2A;
+    --yellow-light: #FDF3DC;
+    --red: #B03A2E;
+    --red-light: #FDECEA;
+    --orange: #B35A1F;
+    --orange-light: #FDEEE5;
+    --blue: #3B4EA6;
+    --blue-light: #E8EEFF;
+    --shadow: 0 1px 3px rgba(26,25,22,0.08);
+    --shadow-md: 0 4px 12px rgba(26,25,22,0.10);
+    --radius: 8px;
+    --font-d: 'Playfair Display', Georgia, serif;
+    --font-b: 'Inter', system-ui, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg:#16150F; --surface:#221F17; --border:#35311F;
+      --fg:#EDE9DF; --fg-muted:#9B9585; --fg-subtle:#5C5848;
+      --accent:#C4895A; --accent-light:#2E1E0F;
+      --green:#5AAF85; --green-light:#0F2A1C;
+      --yellow:#D4A93A; --yellow-light:#241A04;
+      --red:#D96252; --red-light:#2A0F0C;
+      --orange:#D47840; --orange-light:#2A1208;
+      --blue:#8899E0; --blue-light:#1A1F3A;
+      --shadow:0 1px 3px rgba(0,0,0,0.3);
+      --shadow-md:0 4px 12px rgba(0,0,0,0.4);
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg:#16150F; --surface:#221F17; --border:#35311F;
+    --fg:#EDE9DF; --fg-muted:#9B9585; --fg-subtle:#5C5848;
+    --accent:#C4895A; --accent-light:#2E1E0F;
+    --green:#5AAF85; --green-light:#0F2A1C;
+    --yellow:#D4A93A; --yellow-light:#241A04;
+    --red:#D96252; --red-light:#2A0F0C;
+    --orange:#D47840; --orange-light:#2A1208;
+    --blue:#8899E0; --blue-light:#1A1F3A;
+    --shadow:0 1px 3px rgba(0,0,0,0.3);
+    --shadow-md:0 4px 12px rgba(0,0,0,0.4);
+    color-scheme: dark;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font-b);
+    font-size: 14px;
+    background: var(--bg);
+    color: var(--fg);
+    line-height: 1.5;
+  }
+
+  /* ── HEADER ── */
+  .app-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 max(20px, env(safe-area-inset-left,0px));
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 56px;
+    position: sticky;
+    top: env(safe-area-inset-top,0px);
+    z-index: 100;
+    box-shadow: var(--shadow);
+  }
+  .header-brand { display: flex; align-items: center; gap: 10px; }
+  .header-logo {
+    width: 28px; height: 28px;
+    background: var(--accent); border-radius: 6px;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-family: var(--font-d); font-size: 14px; font-weight: 600;
+  }
+  .header-title { font-family: var(--font-d); font-size: 16px; color: var(--fg); }
+  .header-actions { display: flex; align-items: center; gap: 8px; }
+
+  /* ── BOTONES ── */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 7px 14px; border-radius: var(--radius);
+    font-family: var(--font-b); font-size: 13px; font-weight: 500;
+    cursor: pointer; border: none; transition: all 0.15s;
+  }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { filter: brightness(1.1); }
+  .btn-ghost { background: transparent; color: var(--fg-muted); border: 1px solid var(--border); }
+  .btn-ghost:hover { background: var(--bg); color: var(--fg); }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  /* ── LAYOUT ── */
+  .app-body {
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    height: calc(100vh - 56px - env(safe-area-inset-top,0px));
+  }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    border-right: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    background: var(--surface); overflow: hidden;
+  }
+  .sidebar-search {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    display: flex; gap: 8px; align-items: center;
+  }
+  .search-input {
+    flex: 1; padding: 7px 10px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--bg); color: var(--fg);
+    font-family: var(--font-b); font-size: 13px; outline: none;
+  }
+  .search-input:focus { border-color: var(--accent); }
+  .search-input::placeholder { color: var(--fg-subtle); }
+  .sidebar-filters {
+    padding: 8px 14px; border-bottom: 1px solid var(--border);
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .filter-chip {
+    padding: 3px 10px; border-radius: 20px;
+    font-size: 11px; font-weight: 500; cursor: pointer;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--fg-muted); font-family: var(--font-b); transition: all 0.15s;
+  }
+  .filter-chip.active, .filter-chip:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sidebar-count {
+    padding: 6px 14px; font-size: 11px; color: var(--fg-subtle);
+    font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase;
+    border-bottom: 1px solid var(--border);
+  }
+  .contact-list { overflow-y: auto; flex: 1; }
+  .contact-item {
+    padding: 12px 14px; border-bottom: 1px solid var(--border);
+    cursor: pointer; transition: background 0.1s;
+    display: flex; gap: 10px; align-items: flex-start;
+  }
+  .contact-item:hover { background: var(--bg); }
+  .contact-item.active { background: var(--accent-light); border-left: 3px solid var(--accent); padding-left: 11px; }
+  .contact-avatar {
+    width: 34px; height: 34px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 600; flex-shrink: 0; color: #fff;
+  }
+  .contact-info { flex: 1; min-width: 0; }
+  .contact-name { font-weight: 500; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--fg); }
+  .contact-company { font-size: 12px; color: var(--fg-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .contact-meta { display: flex; gap: 4px; margin-top: 4px; align-items: center; flex-wrap: wrap; }
+
+  /* ── TAGS / BADGES ── */
+  .tag {
+    display: inline-flex; align-items: center;
+    padding: 2px 7px; border-radius: 10px;
+    font-size: 10px; font-weight: 500; letter-spacing: 0.02em; white-space: nowrap;
+  }
+  .tag-marca      { background: var(--accent-light); color: var(--accent); }
+  .tag-proveedor  { background: var(--blue-light);   color: var(--blue); }
+  .tag-institucion{ background: var(--green-light);  color: var(--green); }
+  .tag-empleo     { background: var(--yellow-light); color: var(--yellow); }
+  .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+  .dot-nuevo      { background: var(--accent); }
+  .dot-contactado { background: var(--yellow); }
+  .dot-ficha      { background: var(--blue); }
+  .dot-valorado   { background: var(--green); }
+  .dot-derivado   { background: var(--fg-subtle); }
+  .dot-descartado { background: var(--red); }
+  .canal-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 11px; padding: 2px 8px; border-radius: 10px;
+    background: var(--bg); border: 1px solid var(--border);
+    color: var(--fg-muted); font-weight: 500;
+  }
+
+  /* ── PANEL DETALLE ── */
+  .detail-panel { overflow-y: auto; background: var(--bg); display: flex; flex-direction: column; }
+  .detail-empty {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    color: var(--fg-subtle); gap: 12px; padding: 40px;
+  }
+  .detail-empty-icon {
+    width: 56px; height: 56px; border: 2px dashed var(--border);
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px;
+  }
+  .detail-content { padding: 24px max(24px, env(safe-area-inset-right,0px)); display: flex; flex-direction: column; gap: 20px; }
+
+  /* ── CARDS ── */
+  .card { background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+  .card-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 11px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.06em; color: var(--fg-subtle);
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .info-row {
+    display: grid; grid-template-columns: 130px 1fr;
+    gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--border); align-items: start;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { font-size: 12px; color: var(--fg-subtle); font-weight: 500; padding-top: 1px; }
+  .info-val { font-size: 13px; color: var(--fg); word-break: break-word; }
+  .info-val a { color: var(--accent); text-decoration: none; }
+
+  /* ── HEADER DETALLE ── */
+  .detail-header-card {
+    background: var(--surface); border-radius: var(--radius); box-shadow: var(--shadow);
+    padding: 20px; display: flex; gap: 16px; align-items: flex-start;
+  }
+  .detail-avatar {
+    width: 52px; height: 52px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 600; color: #fff; flex-shrink: 0;
+  }
+  .detail-header-info { flex: 1; min-width: 0; }
+  .detail-name { font-family: var(--font-d); font-size: 20px; color: var(--fg); margin: 0 0 2px; line-height: 1.2; }
+  .detail-company { color: var(--fg-muted); font-size: 14px; margin-bottom: 8px; }
+  .detail-tags { display: flex; gap: 6px; flex-wrap: wrap; }
+  .lang-tabs { display: flex; border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; width: fit-content; }
+  .lang-tab { padding: 5px 14px; font-size: 12px; font-weight: 500; cursor: pointer; background: transparent; border: none; color: var(--fg-muted); font-family: var(--font-b); transition: all 0.15s; }
+  .lang-tab.active { background: var(--accent); color: #fff; }
+
+  /* ── PIPELINE ── */
+  .pipeline-steps { display: flex; padding: 12px 16px 16px; position: relative; }
+  .pipeline-step { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; position: relative; cursor: pointer; }
+  .pipeline-step::before { content:''; position:absolute; top:13px; left:50%; right:-50%; height:2px; background:var(--border); z-index:0; }
+  .pipeline-step:last-child::before { display:none; }
+  .pipeline-step::after { content:''; position:absolute; top:13px; left:-50%; right:50%; height:2px; background:var(--accent); z-index:0; display:none; }
+  .pipeline-step.done::after { display:block; }
+  .pipeline-dot {
+    width:26px; height:26px; border-radius:50%;
+    border:2px solid var(--border); background:var(--surface);
+    display:flex; align-items:center; justify-content:center;
+    font-size:11px; z-index:1; transition:all 0.2s; position:relative;
+  }
+  .pipeline-step.done .pipeline-dot { background:var(--accent); border-color:var(--accent); color:#fff; }
+  .pipeline-step.current .pipeline-dot { border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-light); color:var(--accent); font-weight:600; }
+  .pipeline-step-label { font-size:10px; color:var(--fg-subtle); text-align:center; line-height:1.2; font-weight:500; }
+  .pipeline-step.done .pipeline-step-label,
+  .pipeline-step.current .pipeline-step-label { color:var(--accent); }
+
+  /* ── SEMÁFORO ── */
+  .semaforo-row { display:flex; align-items:center; gap:12px; padding:10px 16px; border-bottom:1px solid var(--border); }
+  .semaforo-row:last-child { border-bottom:none; }
+  .semaforo-indicator { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:14px; flex-shrink:0; }
+  .sem-green  { background:var(--green-light);  color:var(--green); }
+  .sem-yellow { background:var(--yellow-light); color:var(--yellow); }
+  .sem-orange { background:var(--orange-light); color:var(--orange); }
+  .sem-red    { background:var(--red-light);    color:var(--red); }
+  .sem-empty  { background:var(--bg); color:var(--fg-subtle); border:1px dashed var(--border); }
+  .semaforo-label { flex:1; }
+  .semaforo-title { font-size:13px; font-weight:500; color:var(--fg); }
+  .semaforo-sub   { font-size:12px; color:var(--fg-muted); }
+  .verdict { font-size:12px; font-weight:600; padding:3px 10px; border-radius:10px; white-space:nowrap; }
+  .verdict-green  { background:var(--green-light);  color:var(--green); }
+  .verdict-yellow { background:var(--yellow-light); color:var(--yellow); }
+  .verdict-orange { background:var(--orange-light); color:var(--orange); }
+  .verdict-red    { background:var(--red-light);    color:var(--red); }
+  .precio-input {
+    width:100px; padding:6px 10px; border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--bg); color:var(--fg); font-family:var(--font-b); font-size:13px;
+    font-variant-numeric:tabular-nums; outline:none;
+  }
+  .precio-input:focus { border-color:var(--accent); }
+
+  /* ── RESUMEN MAILING ── */
+  .resumen-box {
+    background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px; margin:0 16px 16px; font-size:13px; line-height:1.8; position:relative;
+  }
+  .resumen-row { display:flex; gap:8px; }
+  .resumen-key { color:var(--fg-subtle); font-weight:500; min-width:110px; }
+  .copy-btn {
+    position:absolute; top:10px; right:10px;
+    padding:4px 10px; background:var(--surface); border:1px solid var(--border);
+    border-radius:6px; font-size:11px; font-weight:500; cursor:pointer;
+    color:var(--fg-muted); font-family:var(--font-b); transition:all 0.15s;
+  }
+  .copy-btn:hover { color:var(--fg); border-color:var(--accent); }
+
+  /* ── EMAIL PREVIEW ── */
+  .email-preview {
+    background:var(--bg); border:1px solid var(--border); border-radius:var(--radius);
+    padding:14px; font-size:13px; line-height:1.7; color:var(--fg);
+    max-height:220px; overflow-y:auto; white-space:pre-wrap; word-break:break-word;
+  }
+
+  /* ── MODAL ── */
+  .modal-overlay {
+    position:fixed; inset:0; background:rgba(0,0,0,0.4);
+    z-index:200; display:flex; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal {
+    background:var(--surface); border-radius:12px; box-shadow:var(--shadow-md);
+    width:100%; max-width:560px; max-height:85vh; overflow-y:auto;
+    display:flex; flex-direction:column;
+  }
+  .modal-header { padding:20px 20px 0; display:flex; align-items:center; justify-content:space-between; }
+  .modal-title { font-family:var(--font-d); font-size:18px; color:var(--fg); }
+  .modal-close {
+    width:28px; height:28px; border-radius:50%; border:1px solid var(--border);
+    background:transparent; cursor:pointer; display:flex; align-items:center;
+    justify-content:center; color:var(--fg-muted); font-size:16px; font-family:var(--font-b);
+  }
+  .modal-close:hover { background:var(--bg); }
+  .modal-body { padding:16px 20px 20px; display:flex; flex-direction:column; gap:14px; }
+  .modal-footer { padding:12px 20px; border-top:1px solid var(--border); display:flex; gap:8px; justify-content:flex-end; }
+  .form-group { display:flex; flex-direction:column; gap:5px; }
+  .form-label { font-size:12px; font-weight:500; color:var(--fg-muted); }
+  .form-input, .form-select, .form-textarea {
+    padding:8px 11px; border:1px solid var(--border); border-radius:var(--radius);
+    background:var(--bg); color:var(--fg); font-family:var(--font-b); font-size:13px;
+    outline:none; width:100%; transition:border-color 0.15s;
+  }
+  .form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--accent); }
+  .form-textarea { resize:vertical; min-height:80px; }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .form-hint { font-size:11px; color:var(--fg-subtle); }
+  .paste-area {
+    background:var(--bg); border:2px dashed var(--border); border-radius:var(--radius);
+    padding:14px; text-align:center; cursor:pointer; color:var(--fg-muted); font-size:13px; transition:all 0.15s;
+  }
+  .paste-area:hover { border-color:var(--accent); color:var(--accent); }
+  .divider { display:flex; align-items:center; gap:10px; color:var(--fg-subtle); font-size:11px; }
+  .divider::before, .divider::after { content:''; flex:1; height:1px; background:var(--border); }
+
+  /* ── LOADING / TOAST ── */
+  .loading { display:flex; align-items:center; justify-content:center; padding:40px; color:var(--fg-muted); gap:10px; }
+  .spinner { width:20px; height:20px; border:2px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.7s linear infinite; }
+  @keyframes spin { to { transform:rotate(360deg); } }
+  .toast {
+    position:fixed; bottom:max(20px, env(safe-area-inset-bottom,0px)); left:50%;
+    transform:translateX(-50%) translateY(80px); background:var(--fg); color:var(--bg);
+    padding:10px 20px; border-radius:20px; font-size:13px; font-weight:500;
+    opacity:0; transition:all 0.25s; z-index:999; white-space:nowrap;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* ── FICHA PENDIENTE ── */
+  .ficha-pending { padding:16px; text-align:center; }
+  .ficha-pending p { color:var(--fg-muted); font-size:13px; margin:0 0 12px; }
+
+  @media (max-width: 680px) {
+    .app-body { grid-template-columns: 1fr; }
+    .detail-panel { display:none; }
+    .detail-panel.mobile-visible { display:flex; position:fixed; inset:56px 0 0 0; z-index:50; overflow-y:auto; }
+    .form-row { grid-template-columns:1fr; }
+  }
+  ::-webkit-scrollbar { width:5px; }
+  ::-webkit-scrollbar-thumb { background:var(--border); border-radius:3px; }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <div class="header-brand">
+    <div class="header-logo">A</div>
+    <span class="header-title">CRM Asopiel</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-ghost btn-sm" onclick="showStats()">📊 Stats</button>
+    <button class="btn btn-primary" onclick="openModal()">+ Nuevo contacto</button>
+  </div>
+</header>
+
+<!-- BODY -->
+<div class="app-body">
+  <aside class="sidebar">
+    <div class="sidebar-search">
+      <input class="search-input" type="text" id="searchInput" placeholder="Buscar..." oninput="filterContacts()">
+    </div>
+    <div class="sidebar-filters">
+      <button class="filter-chip active" onclick="setFilter('todos',this)">Todos</button>
+      <button class="filter-chip" onclick="setFilter('marca',this)">🏷 Marca</button>
+      <button class="filter-chip" onclick="setFilter('proveedor',this)">🔩 Proveedor</button>
+      <button class="filter-chip" onclick="setFilter('institucion',this)">🏛 Institución</button>
+      <button class="filter-chip" onclick="setFilter('empleo',this)">👤 Empleo</button>
+    </div>
+    <div class="sidebar-count" id="sidebarCount">Cargando...</div>
+    <div class="contact-list" id="contactList"><div class="loading"><div class="spinner"></div> Cargando...</div></div>
+  </aside>
+
+  <main class="detail-panel" id="detailPanel">
+    <div class="detail-empty" id="emptyState">
+      <div class="detail-empty-icon">📋</div>
+      <div style="font-size:14px;font-weight:500;">Selecciona un contacto</div>
+      <div style="font-size:13px;">o crea uno nuevo con el botón superior</div>
+    </div>
+    <div class="detail-content" id="detailContent" hidden></div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" hidden onclick="closeModalOnOverlay(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Nuevo contacto</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div>
+        <div class="form-label" style="margin-bottom:6px;">Pegar correo del formulario web</div>
+        <div class="paste-area" onclick="document.getElementById('pasteInput').focus()">
+          <div style="font-size:20px;margin-bottom:4px;">📋</div>
+          <div>Haz clic y pega el texto del correo recibido</div>
+          <div style="font-size:11px;margin-top:2px;color:var(--fg-subtle);">Extrae nombre, email y teléfono automáticamente</div>
+        </div>
+        <textarea id="pasteInput" class="form-textarea" style="margin-top:8px;height:60px;" placeholder="Pega aquí el texto del correo..." oninput="parsePastedEmail(this.value)"></textarea>
+      </div>
+      <div class="divider">o rellena manualmente</div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Nombre *</label><input class="form-input" id="f_nombre" type="text" placeholder="Nombre completo"></div>
+        <div class="form-group"><label class="form-label">Empresa</label><input class="form-input" id="f_empresa" type="text" placeholder="Nombre empresa"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group"><label class="form-label">Email *</label><input class="form-input" id="f_email" type="email" placeholder="correo@empresa.com"></div>
+        <div class="form-group"><label class="form-label">Teléfono</label><input class="form-input" id="f_telefono" type="text" placeholder="+34 600 000 000"></div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Tipo de contacto *</label>
+          <select class="form-select" id="f_tipo" onchange="updateLangField()">
+            <option value="">— Seleccionar —</option>
+            <option value="marca">🏷 Marca / Diseñador</option>
+            <option value="proveedor">🔩 Proveedor</option>
+            <option value="institucion">🏛 Institución / Media</option>
+            <option value="empleo">👤 Candidato a empleo</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Canal de entrada *</label>
+          <select class="form-select" id="f_canal">
+            <option value="">— Seleccionar —</option>
+            <option value="web">🌐 Web Asopiel</option>
+            <option value="movex">🏢 Movex</option>
+            <option value="cade">🏛 CADE Ubrique</option>
+            <option value="ayuntamiento">🏛 Ayuntamiento</option>
+            <option value="directo">📧 Contacto directo</option>
+            <option value="otro">Otro</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group" id="langGroup">
+        <label class="form-label">Idioma de bienvenida</label>
+        <select class="form-select" id="f_idioma">
+          <option value="es">🇪🇸 Español</option>
+          <option value="en">🇬🇧 English</option>
+          <option value="fr">🇫🇷 Français</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Notas internas</label>
+        <textarea class="form-textarea" id="f_notas" placeholder="Contexto, observaciones..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-primary" id="saveBtn" onclick="guardarContacto()">Guardar contacto</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ────────────────────────────────────────────────────────
+// En producción apunta al Worker desplegado; en local usa el proxy de Pages
+const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+  ? 'http://localhost:8787'
+  : '/api';
+
+// ── ESTADO ───────────────────────────────────────────────────────
+let contactos = [];
+let contactoActivo = null;
+let filtroActivo = 'todos';
+
+// ── HELPERS ──────────────────────────────────────────────────────
+const TIPO = {
+  marca:      { label:'Marca / Diseñador', emoji:'🏷', cls:'tag-marca',       color:'#8B5E3C' },
+  proveedor:  { label:'Proveedor',         emoji:'🔩', cls:'tag-proveedor',    color:'#3B4EA6' },
+  institucion:{ label:'Institución',       emoji:'🏛', cls:'tag-institucion',  color:'#3A7D5B' },
+  empleo:     { label:'Empleo',            emoji:'👤', cls:'tag-empleo',       color:'#A07A2A' },
+};
+const ESTADO = {
+  nuevo:      { label:'Nuevo',         dotCls:'dot-nuevo' },
+  contactado: { label:'Contactado',    dotCls:'dot-contactado' },
+  ficha:      { label:'Ficha recibida',dotCls:'dot-ficha' },
+  valorado:   { label:'Valorado',      dotCls:'dot-valorado' },
+  derivado:   { label:'Derivado',      dotCls:'dot-derivado' },
+  descartado: { label:'Descartado',    dotCls:'dot-descartado' },
+};
+const CANAL = { web:'🌐 Web Asopiel', movex:'🏢 Movex', cade:'🏛 CADE Ubrique', ayuntamiento:'🏛 Ayuntamiento', directo:'📧 Directo', otro:'Otro' };
+const PIPELINE = [
+  { key:'nuevo',      label:'Nuevo',      icon:'✦' },
+  { key:'contactado', label:'Contactado', icon:'✉' },
+  { key:'ficha',      label:'Ficha',      icon:'📋' },
+  { key:'valorado',   label:'Valorado',   icon:'⚖' },
+  { key:'derivado',   label:'Derivado',   icon:'✓' },
+];
+
+function initials(n) { return (n||'?').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase(); }
+
+// ── API ───────────────────────────────────────────────────────────
+async function apiFetch(path, opts={}) {
+  const res = await fetch(API + path, { headers:{'Content-Type':'application/json'}, ...opts });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}
+
+// ── CARGA INICIAL ─────────────────────────────────────────────────
+async function loadContactos() {
+  try {
+    const q = document.getElementById('searchInput').value;
+    const params = new URLSearchParams();
+    if (filtroActivo !== 'todos') params.set('tipo', filtroActivo);
+    if (q) params.set('q', q);
+    contactos = await apiFetch('/contactos?' + params);
+    renderList();
+  } catch(e) {
+    document.getElementById('contactList').innerHTML = `<div class="loading" style="color:var(--red);">Error al cargar. ¿Está el Worker desplegado?</div>`;
+  }
+}
+
+// ── RENDER LISTA ──────────────────────────────────────────────────
+function renderList() {
+  const ul = document.getElementById('contactList');
+  document.getElementById('sidebarCount').textContent = `${contactos.length} contacto${contactos.length!==1?'s':''}`;
+  if (!contactos.length) {
+    ul.innerHTML = '<div class="loading" style="color:var(--fg-subtle);">Sin resultados</div>';
+    return;
+  }
+  ul.innerHTML = '';
+  contactos.forEach(c => {
+    const t = TIPO[c.tipo] || TIPO.marca;
+    const e = ESTADO[c.estado] || ESTADO.nuevo;
+    const div = document.createElement('div');
+    div.className = 'contact-item' + (contactoActivo?.id===c.id?' active':'');
+    div.onclick = () => selectContact(c.id);
+    div.innerHTML = `
+      <div class="contact-avatar" style="background:${t.color}">${initials(c.nombre)}</div>
+      <div class="contact-info">
+        <div class="contact-name">${c.nombre}</div>
+        <div class="contact-company">${c.empresa||c.email}</div>
+        <div class="contact-meta">
+          <span class="tag ${t.cls}">${t.emoji} ${t.label}</span>
+          <span class="status-dot ${e.dotCls}" title="${e.label}"></span>
+        </div>
+      </div>`;
+    ul.appendChild(div);
+  });
+}
+
+function filterContacts() { loadContactos(); }
+function setFilter(f, el) {
+  filtroActivo = f;
+  document.querySelectorAll('.filter-chip').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  loadContactos();
+}
+
+// ── SELECCIONAR ───────────────────────────────────────────────────
+async function selectContact(id) {
+  document.getElementById('emptyState').hidden = true;
+  const dc = document.getElementById('detailContent');
+  dc.hidden = false;
+  dc.innerHTML = '<div class="loading"><div class="spinner"></div> Cargando...</div>';
+  try {
+    const data = await apiFetch(`/contactos/${id}`);
+    contactoActivo = data;
+    renderList();
+    renderDetail();
+  } catch(e) { dc.innerHTML = '<div class="loading" style="color:var(--red);">Error al cargar el contacto.</div>'; }
+}
+
+// ── RENDER DETALLE ────────────────────────────────────────────────
+function renderDetail() {
+  const c = contactoActivo;
+  const t = TIPO[c.tipo] || TIPO.marca;
+  const pipeIdx = PIPELINE.findIndex(s=>s.key===c.estado);
+
+  const dc = document.getElementById('detailContent');
+  dc.hidden = false;
+
+  // Semáforo de valoración (solo marcas)
+  let semHtml = '';
+  if (c.tipo === 'marca') {
+    const pw = c.precio_web;
+    let ind='empty', clsI='sem-empty', verdict='', clsV='', icon='?';
+    if (pw !== null && pw !== undefined) {
+      if (pw < 60)        { ind='red';    clsI='sem-red';    verdict='Descartable'; clsV='verdict-red';    icon='✕'; }
+      else if (pw < 120)  { ind='orange'; clsI='sem-orange'; verdict='Dudoso';      clsV='verdict-orange'; icon='~'; }
+      else if (pw <= 250) { ind='yellow'; clsI='sem-yellow'; verdict='Estudiable';  clsV='verdict-yellow'; icon='◐'; }
+      else                { ind='green';  clsI='sem-green';  verdict='Rentable';    clsV='verdict-green';  icon='✓'; }
+    }
+    const fichaRows = c.ficha ? `
+    <div class="semaforo-row">
+      <div class="semaforo-indicator ${c.ficha.presupuesto>=60?'sem-green':'sem-red'}">${c.ficha.presupuesto>=60?'✓':'✕'}</div>
+      <div class="semaforo-label">
+        <div class="semaforo-title">Presupuesto por unidad</div>
+        <div class="semaforo-sub">${c.ficha.presupuesto} €/ud · ${c.ficha.volumen||'—'}</div>
+      </div>
+      <span class="verdict ${c.ficha.presupuesto>=60?'verdict-green':'verdict-red'}">${c.ficha.presupuesto>=60?'Viable':'Bajo'}</span>
+    </div>` : '';
+    const resumenHtml = c.ficha && pw >= 120 ? `
+    <div style="border-top:1px solid var(--border)">
+      <div class="card-header" style="padding:12px 16px 8px;border-bottom:none;">Resumen para mailing</div>
+      <div class="resumen-box">
+        <button class="copy-btn" onclick="copyResumen()">Copiar</button>
+        <div class="resumen-row"><span class="resumen-key">Empresa:</span><span>${c.empresa||'—'}</span></div>
+        <div class="resumen-row"><span class="resumen-key">Contacto:</span><span>${c.nombre}</span></div>
+        <div class="resumen-row"><span class="resumen-key">Propósito:</span><span>${c.ficha.proposito||'—'}</span></div>
+        <div class="resumen-row"><span class="resumen-key">Volumen:</span><span>${c.ficha.volumen||'—'}</span></div>
+        <div class="resumen-row"><span class="resumen-key">Presupuesto/ud:</span><span>${c.ficha.presupuesto} €</span></div>
+        <div class="resumen-row"><span class="resumen-key">Precio web:</span><span>${pw} € → ${pw>=250?'🟢 Rentable':pw>=120?'🟡 Estudiable':'🟠 Dudoso'}</span></div>
+        <div class="resumen-row"><span class="resumen-key">Necesidades:</span><span>${(c.ficha.necesidades_parsed||[]).join(', ')||'—'}</span></div>
+        <div class="resumen-row"><span class="resumen-key">Inicio:</span><span>${c.ficha.fecha_inicio||'—'}</span></div>
+      </div>
+    </div>` : '';
+    semHtml = `
+    <div class="card">
+      <div class="card-header">Valoración Ubrique</div>
+      <div class="semaforo-row">
+        <div class="semaforo-indicator ${clsI}">${icon}</div>
+        <div class="semaforo-label">
+          <div class="semaforo-title">Precio web del producto</div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+            <input class="precio-input" type="number" id="precioInput" placeholder="0"
+              value="${pw!==null&&pw!==undefined?pw:''}"
+              onchange="actualizarPrecioWeb(this.value)">
+            <span style="color:var(--fg-muted);font-size:13px;">€ / bolso</span>
+          </div>
+        </div>
+        ${pw!==null&&pw!==undefined ? `<span class="verdict ${clsV}">${verdict}</span>` : ''}
+      </div>
+      ${fichaRows}
+      ${resumenHtml}
+    </div>`;
+  } else if (c.tipo === 'empleo') {
+    semHtml = `<div class="card">
+      <div class="card-header">Acción recomendada</div>
+      <div class="info-row"><div class="info-key">Derivar a</div><div class="info-val"><a href="https://asopielubrique-oss.github.io/bolsa-empleo-piel/" target="_blank">🔗 Bolsa de Empleo Piel</a></div></div>
+    </div>`;
+  }
+
+  // Ficha
+  const fichaCard = c.ficha ? `
+  <div class="card">
+    <div class="card-header">Ficha recibida <span style="color:var(--green);font-size:11px;">✓ Completada</span></div>
+    <div class="info-row"><div class="info-key">Propósito</div><div class="info-val">${c.ficha.proposito||'—'}</div></div>
+    <div class="info-row"><div class="info-key">Producción previa</div><div class="info-val">${c.ficha.produccion_prev||'—'}</div></div>
+    <div class="info-row"><div class="info-key">Volumen en Ubrique</div><div class="info-val">${c.ficha.volumen||'—'}</div></div>
+    <div class="info-row"><div class="info-key">Presupuesto/ud</div><div class="info-val" style="font-variant-numeric:tabular-nums;">${c.ficha.presupuesto} €</div></div>
+    <div class="info-row"><div class="info-key">Necesidades</div><div class="info-val">${(c.ficha.necesidades_parsed||[]).join(', ')||'—'}</div></div>
+    <div class="info-row"><div class="info-key">Inicio previsto</div><div class="info-val">${c.ficha.fecha_inicio||'—'}</div></div>
+    ${c.ficha.observaciones?`<div class="info-row"><div class="info-key">Observaciones</div><div class="info-val">${c.ficha.observaciones}</div></div>`:''}
+  </div>` : c.tipo==='marca' ? `
+  <div class="card">
+    <div class="card-header">Ficha <span style="color:var(--fg-subtle);font-size:11px;">Pendiente</span></div>
+    <div class="ficha-pending">
+      <p>La ficha no ha sido devuelta aún.</p>
+      <button class="btn btn-ghost btn-sm" onclick="showToast('Recordatorio anotado')">📧 Enviar recordatorio</button>
+    </div>
+  </div>` : '';
+
+  // Plantilla email
+  const emailCard = `
+  <div class="card">
+    <div class="card-header">Plantilla de bienvenida
+      ${c.tipo==='marca'||c.tipo==='proveedor' ? `
+      <div class="lang-tabs">
+        <button class="lang-tab ${c.idioma==='es'?'active':''}" onclick="setIdioma('es')">ES</button>
+        <button class="lang-tab ${c.idioma==='en'?'active':''}" onclick="setIdioma('en')">EN</button>
+        <button class="lang-tab ${c.idioma==='fr'?'active':''}" onclick="setIdioma('fr')">FR</button>
+      </div>` : ''}
+    </div>
+    <div style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px;">
+      <div class="email-preview" id="emailPreview">${getPlantilla(c)}</div>
+      <div style="display:flex;gap:8px;justify-content:flex-end;">
+        <button class="btn btn-ghost btn-sm" onclick="copyEmail()">📋 Copiar</button>
+        <button class="btn btn-primary btn-sm" onclick="showToast('Abre tu cliente de correo y pega el texto')">✉ Preparar envío</button>
+      </div>
+    </div>
+  </div>`;
+
+  dc.innerHTML = `
+    <!-- CABECERA -->
+    <div class="detail-header-card">
+      <div class="detail-avatar" style="background:${t.color}">${initials(c.nombre)}</div>
+      <div class="detail-header-info">
+        <h2 class="detail-name">${c.nombre}</h2>
+        <div class="detail-company">${c.empresa||''}</div>
+        <div class="detail-tags">
+          <span class="tag ${t.cls}">${t.emoji} ${t.label}</span>
+          <span class="canal-badge">${CANAL[c.canal]||c.canal}</span>
+          <span class="canal-badge">📅 ${c.fecha_entrada||''}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PIPELINE -->
+    <div class="card">
+      <div class="card-header">Estado del proceso</div>
+      <div class="pipeline-steps">
+        ${PIPELINE.map((step,i)=>{
+          const cls = i<pipeIdx?'done':i===pipeIdx?'current':'';
+          return `<div class="pipeline-step ${cls}" onclick="setEstado('${step.key}')">
+            <div class="pipeline-dot">${i<pipeIdx?'✓':step.icon}</div>
+            <div class="pipeline-step-label">${step.label}</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- DATOS CONTACTO -->
+    <div class="card">
+      <div class="card-header">Datos de contacto</div>
+      <div class="info-row"><div class="info-key">Email</div><div class="info-val"><a href="mailto:${c.email}">${c.email}</a></div></div>
+      ${c.telefono?`<div class="info-row"><div class="info-key">Teléfono</div><div class="info-val">${c.telefono}</div></div>`:''}
+      ${c.notas?`<div class="info-row"><div class="info-key">Notas</div><div class="info-val">${c.notas}</div></div>`:''}
+      ${c.dominio_analisis?`<div class="info-row"><div class="info-key">Análisis dominio</div><div class="info-val" style="color:var(--fg-muted);font-style:italic;">${c.dominio_analisis}</div></div>`:''}
+    </div>
+
+    ${semHtml}
+    ${fichaCard}
+    ${emailCard}
+  `;
+}
+
+// ── ACCIONES ──────────────────────────────────────────────────────
+async function setEstado(estado) {
+  if (!contactoActivo) return;
+  try {
+    await apiFetch(`/contactos/${contactoActivo.id}`, {
+      method:'PATCH', body:JSON.stringify({estado})
+    });
+    contactoActivo.estado = estado;
+    renderDetail();
+    loadContactos();
+    showToast(`Estado: ${ESTADO[estado]?.label}`);
+  } catch(e) { showToast('Error al actualizar estado'); }
+}
+
+async function setIdioma(idioma) {
+  if (!contactoActivo) return;
+  try {
+    await apiFetch(`/contactos/${contactoActivo.id}`, {
+      method:'PATCH', body:JSON.stringify({idioma})
+    });
+    contactoActivo.idioma = idioma;
+    renderDetail();
+  } catch(e) {}
+}
+
+async function actualizarPrecioWeb(val) {
+  if (!contactoActivo) return;
+  const precio_web = val ? parseFloat(val) : null;
+  try {
+    await apiFetch(`/contactos/${contactoActivo.id}`, {
+      method:'PATCH', body:JSON.stringify({precio_web})
+    });
+    contactoActivo.precio_web = precio_web;
+    renderDetail();
+  } catch(e) {}
+}
+
+// ── PLANTILLAS ────────────────────────────────────────────────────
+function getPlantilla(c) {
+  const nombre = (c.nombre||'').split(' ')[0];
+  if (c.tipo==='institucion') return getPlantillaInstitucion(c);
+  if (c.tipo==='empleo')      return getPlantillaEmpleo(c);
+  if (c.idioma==='en') return `Dear ${nombre},\n\nOn behalf of ASOPIEL (Association of Leather Goods Manufacturers of Ubrique), we would like to thank you for your interest in contacting our organization.\n\nASOPIEL brings together the 24 leading leather goods companies in Ubrique, which collectively employ more than 4,000 professionals across 130 production facilities, reaching an annual output of approximately 2 million high-quality leather products.\n\nIn order to forward your proposal to the most suitable member companies, we kindly request that you complete and return the attached information form.\n\nWe remain at your disposal for any further clarification.\n\nYours sincerely,\nASOPIEL`;
+  if (c.idioma==='fr') return `Cher/Chère ${nombre},\n\nAu nom d'ASOPIEL (Association des Entrepreneurs du Secteur du Cuir d'Ubrique), nous tenons à vous remercier de l'intérêt que vous portez à notre organisation.\n\nASOPIEL regroupe les 24 principales entreprises de maroquinerie d'Ubrique, qui emploient collectivement plus de 4 000 professionnels dans 130 installations de production.\n\nAfin de transmettre votre proposition aux entreprises membres les plus appropriées, nous vous demandons de bien vouloir compléter le formulaire d'information ci-joint.\n\nNous restons à votre disposition pour tout renseignement complémentaire.\n\nCordialement,\nASOPIEL`;
+  return `Estimado/a ${nombre},\n\nEn nombre de ASOPIEL (Asociación de Empresarios del Sector de la Piel de Ubrique), queremos agradecerle su interés en contactar con nuestra organización.\n\nASOPIEL agrupa a las 24 principales empresas de marroquinería de Ubrique, que emplean a más de 4.000 profesionales en 130 instalaciones productivas, alcanzando una producción anual de aproximadamente 2 millones de artículos de alta calidad.\n\nCon el fin de trasladar su propuesta a las empresas asociadas más adecuadas, le rogamos que cumplimente el formulario de información adjunto.\n\nQuedamos a su disposición para cualquier aclaración.\n\nAtentamente,\nASOPIEL`;
+}
+function getPlantillaInstitucion(c) {
+  const nombre = (c.nombre||'').split(' ')[0];
+  return `Estimado/a ${nombre},\n\nGracias por ponerse en contacto con ASOPIEL (Asociación de Empresarios del Sector de la Piel de Ubrique).\n\nHemos recibido su consulta y nos pondremos en contacto con usted a la mayor brevedad para atender su solicitud.\n\nQuedamos a su disposición.\n\nAtentamente,\nASOPIEL`;
+}
+function getPlantillaEmpleo(c) {
+  const nombre = (c.nombre||'').split(' ')[0];
+  return `Estimado/a ${nombre},\n\nGracias por su interés en formar parte del sector de la marroquinería de Ubrique.\n\nPuede consultar las ofertas disponibles y registrar su candidatura en nuestra Bolsa de Empleo sectorial:\n\nhttps://asopielubrique-oss.github.io/bolsa-empleo-piel/\n\nQuedamos a su disposición.\n\nAtentamente,\nASOPIEL`;
+}
+
+function copyEmail() {
+  if (!contactoActivo) return;
+  const txt = getPlantilla(contactoActivo);
+  navigator.clipboard.writeText(txt).then(()=>showToast('Texto copiado ✓')).catch(()=>showToast('Selecciona el texto manualmente'));
+}
+function copyResumen() {
+  if (!contactoActivo?.ficha) return;
+  const c = contactoActivo;
+  const txt = `Empresa: ${c.empresa||'—'}\nContacto: ${c.nombre}\nPropósito: ${c.ficha.proposito||'—'}\nVolumen: ${c.ficha.volumen||'—'}\nPresupuesto/ud: ${c.ficha.presupuesto}€\nPrecio web: ${c.precio_web}€\nNecesidades: ${(c.ficha.necesidades_parsed||[]).join(', ')||'—'}\nInicio: ${c.ficha.fecha_inicio||'—'}`;
+  navigator.clipboard.writeText(txt).then(()=>showToast('Resumen copiado ✓')).catch(()=>showToast('Selecciona el texto manualmente'));
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function openModal()  { document.getElementById('modalOverlay').hidden = false; updateLangField(); }
+function closeModal() { document.getElementById('modalOverlay').hidden = true; }
+function closeModalOnOverlay(e) { if(e.target.id==='modalOverlay') closeModal(); }
+function updateLangField() {
+  const tipo = document.getElementById('f_tipo').value;
+  document.getElementById('langGroup').hidden = tipo==='institucion'||tipo==='empleo';
+}
+function parsePastedEmail(text) {
+  if (!text.trim()) return;
+  const nm = text.match(/Name:\s*(.+)/i);
+  const em = text.match(/Email:\s*([^\s\]]+)/i);
+  const ph = text.match(/Phone:\s*([^\n\r]+)/i);
+  if (nm) document.getElementById('f_nombre').value  = nm[1].trim();
+  if (em) document.getElementById('f_email').value   = em[1].replace(/[[\]]/g,'').trim();
+  if (ph) document.getElementById('f_telefono').value= ph[1].replace(/[[\]]/g,'').trim();
+  if (em) {
+    const domain = em[1].split('@')[1]?.replace(/[[\]]/g,'').trim();
+    if (domain) showToast(`Dominio detectado: ${domain}`);
+  }
+}
+
+async function guardarContacto() {
+  const nombre = document.getElementById('f_nombre').value.trim();
+  const email  = document.getElementById('f_email').value.trim();
+  const tipo   = document.getElementById('f_tipo').value;
+  const canal  = document.getElementById('f_canal').value;
+  if (!nombre||!email||!tipo||!canal) { showToast('Rellena los campos obligatorios *'); return; }
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = 'Guardando...';
+  try {
+    const nuevo = await apiFetch('/contactos', {
+      method:'POST',
+      body: JSON.stringify({
+        nombre, email,
+        empresa:  document.getElementById('f_empresa').value.trim()||null,
+        telefono: document.getElementById('f_telefono').value.trim()||null,
+        tipo, canal,
+        idioma:   document.getElementById('f_idioma').value||'es',
+        notas:    document.getElementById('f_notas').value.trim()||null,
+        dominio_analisis: email.includes('@') ? `${email.split('@')[1]} — pendiente de análisis` : null,
+      })
+    });
+    closeModal();
+    ['f_nombre','f_empresa','f_email','f_telefono','f_notas','pasteInput'].forEach(id=>{ document.getElementById(id).value=''; });
+    document.getElementById('f_tipo').value=''; document.getElementById('f_canal').value='';
+    await loadContactos();
+    await selectContact(nuevo.id);
+    showToast(`"${nombre}" guardado ✓`);
+  } catch(e) {
+    showToast('Error al guardar. Comprueba la conexión.');
+  } finally { btn.disabled=false; btn.textContent='Guardar contacto'; }
+}
+
+async function showStats() {
+  try {
+    const s = await apiFetch('/stats');
+    const tipos = (s.por_tipo||[]).map(r=>`${TIPO[r.tipo]?.emoji||''}${r.tipo}:${r.n}`).join(' · ');
+    showToast(`Total: ${s.total} · ${tipos}`);
+  } catch(e) { showToast('Error al cargar estadísticas'); }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+loadContactos();
+</script>
+</body>
+</html>

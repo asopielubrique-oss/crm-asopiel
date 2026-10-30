@@ -1,0 +1,8 @@
+name = "crm-asopiel"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "crm-asopiel-db"
+database_id = "93ca670a-8beb-4c2c-81c9-cc86690e2d4f"
