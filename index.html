@@ -427,6 +427,13 @@
           <div style="font-size:11px;margin-top:2px;color:var(--fg-subtle);">Extrae nombre, email y teléfono automáticamente</div>
         </div>
         <textarea id="pasteInput" class="form-textarea" style="margin-top:8px;height:60px;" placeholder="Pega aquí el texto del correo..." oninput="parsePastedEmail(this.value)"></textarea>
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center;">
+          <button type="button" onclick="traducirPegado()" id="btnTraducir"
+            style="font-size:12px;padding:5px 12px;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:5px;">
+            🌐 Traducir al español
+          </button>
+          <span id="traducirStatus" style="font-size:11px;color:var(--fg-subtle);"></span>
+        </div>
       </div>
       <div class="divider">o rellena manualmente</div>
       <div class="form-row">
@@ -887,6 +894,41 @@ function showToast(msg) {
 
 // ── INIT ──────────────────────────────────────────────────────────
 loadContactos();
+</script>
+
+<script>
+// ── TRADUCTOR (Google Translate sin API key) ──────────────────────
+async function traducirPegado() {
+  const ta     = document.getElementById('pasteInput');
+  const status = document.getElementById('traducirStatus');
+  const btn    = document.getElementById('btnTraducir');
+  const texto  = ta.value.trim();
+  if (!texto) { status.textContent = 'Pega primero un texto.'; return; }
+
+  btn.disabled = true;
+  status.textContent = 'Traduciendo…';
+
+  try {
+    // Endpoint público de Google Translate (sin clave, límite ~5000 chars)
+    const url = 'https://translate.googleapis.com/translate_a/single'
+      + '?client=gtx&sl=auto&tl=es&dt=t&q=' + encodeURIComponent(texto);
+
+    const res  = await fetch(url);
+    const data = await res.json();
+
+    // La respuesta es un array anidado: [[["traducido","original",...],...],...]
+    const traducido = data[0].map(chunk => chunk[0]).join('');
+    const idiomaDetectado = data[2] || '?';
+
+    ta.value = traducido;
+    status.textContent = `✓ Traducido desde ${idiomaDetectado.toUpperCase()}`;
+    parsePastedEmail(traducido);   // re-extraer campos con el texto traducido
+  } catch (e) {
+    status.textContent = '⚠ Error al traducir. Comprueba la conexión.';
+  } finally {
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
