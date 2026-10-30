@@ -488,7 +488,7 @@
 // En producción apunta al Worker desplegado; en local usa el proxy de Pages
 const API = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
   ? 'http://localhost:8787'
-  : '/api';
+  : 'https://crm-asopiel.asopielubrique.workers.dev/api';
 
 // ── ESTADO ───────────────────────────────────────────────────────
 let contactos = [];
